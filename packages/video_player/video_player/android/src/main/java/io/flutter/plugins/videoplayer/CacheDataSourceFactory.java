@@ -9,11 +9,8 @@ import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.upstream.FileDataSource;
 import com.google.android.exoplayer2.upstream.cache.CacheDataSink;
 import com.google.android.exoplayer2.upstream.cache.CacheDataSource;
-import com.google.android.exoplayer2.upstream.cache.LeastRecentlyUsedCacheEvictor;
 import com.google.android.exoplayer2.upstream.cache.SimpleCache;
 import com.google.android.exoplayer2.util.Util;
-
-import java.io.File;
 
 /**
  * Created by bby
@@ -38,18 +35,10 @@ class CacheDataSourceFactory implements DataSource.Factory {
 
     @Override
     public DataSource createDataSource() {
-        SimpleCache simpleCache = getInstance(this.context, maxCacheSize);
+        SimpleCache simpleCache = ExoPlayerCache.getInstance(this.context, maxCacheSize);
         return new CacheDataSource(simpleCache, defaultDatasourceFactory.createDataSource(),
                 new FileDataSource(), new CacheDataSink(simpleCache, maxFileSize),
                 CacheDataSource.FLAG_BLOCK_ON_CACHE | CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR, null);
     }
 
-    private static SimpleCache sDownloadCache;
-
-    public static SimpleCache getInstance(Context context, long maxCacheSize) {
-        if (sDownloadCache == null) {
-            sDownloadCache = new SimpleCache(new File(context.getCacheDir(), "exoCache"), new LeastRecentlyUsedCacheEvictor(maxCacheSize));
-        }
-        return sDownloadCache;
-    }
 }
