@@ -100,6 +100,11 @@ abstract class VideoPlayerPlatform {
     throw UnimplementedError('seekTo() has not been implemented.');
   }
 
+  Future<void> preload(int _textureId, String uri, int byteSize) {
+    throw UnimplementedError('preload() has not been implemented.');
+  }
+
+
   /// Sets the playback speed to a [speed] value indicating the playback rate.
   Future<void> setPlaybackSpeed(int textureId, double speed) {
     throw UnimplementedError('setPlaybackSpeed() has not been implemented.');

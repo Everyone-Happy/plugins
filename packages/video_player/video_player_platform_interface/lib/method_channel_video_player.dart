@@ -87,6 +87,15 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
       ..position = position.inMilliseconds);
   }
 
+
+  Future<void> preload(int textureId, String uri, int byteSize) {
+    return _api.preload(PreloadMessage()
+      ..textureId = textureId
+      ..uri = uri
+      ..byteSize = byteSize);
+  }
+
+
   @override
   Future<Duration> getPosition(int textureId) async {
     PositionMessage response =

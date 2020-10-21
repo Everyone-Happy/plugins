@@ -1,12 +1,10 @@
 package io.flutter.plugins.videoplayer;
 
-import static com.google.android.exoplayer2.Player.REPEAT_MODE_ALL;
-import static com.google.android.exoplayer2.Player.REPEAT_MODE_OFF;
-
 import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
 import android.view.Surface;
+
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
@@ -27,19 +25,31 @@ import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.upstream.DataSource;
+import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
+import com.google.android.exoplayer2.upstream.cache.Cache;
+import com.google.android.exoplayer2.upstream.cache.CacheDataSource;
+import com.google.android.exoplayer2.upstream.cache.CacheDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
-import io.flutter.plugin.common.EventChannel;
-import io.flutter.view.TextureRegistry;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Future;
 
-final class VideoPlayer {
+import io.flutter.plugin.common.EventChannel;
+import io.flutter.view.TextureRegistry;
+
+import static com.google.android.exoplayer2.Player.REPEAT_MODE_ALL;
+import static com.google.android.exoplayer2.Player.REPEAT_MODE_OFF;
+
+final class VideoPlayer extends BaseVideoPlayer {
   private static final String FORMAT_SS = "ss";
   private static final String FORMAT_DASH = "dash";
   private static final String FORMAT_HLS = "hls";
@@ -59,6 +69,14 @@ final class VideoPlayer {
 
   private final VideoPlayerOptions options;
 
+
+  private final static long  CACHE_SIZE_MAXIMUM = 100 * 1024 * 1024 ;
+  private final static long  CACHE_SIZE_PERFILE = 5 * 1024 * 1024;
+
+  DataSource.Factory dataSourceFactory;
+  DefaultDataSourceFactory defaultDatasourceFactory;
+  Cache cache;
+
   VideoPlayer(
       Context context,
       EventChannel eventChannel,
@@ -75,10 +93,15 @@ final class VideoPlayer {
 
     Uri uri = Uri.parse(dataSource);
 
-    DataSource.Factory dataSourceFactory;
     if (isHTTP(uri)) {
+      cache = ExoPlayerCache.getInstance(context, CACHE_SIZE_MAXIMUM);
+      String userAgent = Util.getUserAgent(context, "ExoPlayer");
+      DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
+      defaultDatasourceFactory = new DefaultDataSourceFactory(context,
+              bandwidthMeter,
+              new DefaultHttpDataSourceFactory(userAgent, bandwidthMeter));
       dataSourceFactory =
-              new CacheDataSourceFactory(context, 100 * 1024 * 1024, 5 * 1024 * 1024);
+              new CacheDataSourceFactory(cache, defaultDatasourceFactory, CacheDataSource.FLAG_BLOCK_ON_CACHE | CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR, CACHE_SIZE_PERFILE);
     } else {
       dataSourceFactory = new DefaultDataSourceFactory(context, "ExoPlayer");
     }
@@ -87,6 +110,16 @@ final class VideoPlayer {
     exoPlayer.prepare(mediaSource);
 
     setupVideoPlayer(eventChannel, textureEntry);
+  }
+
+  @Override
+  public Cache getCache() {
+    return cache;
+  }
+
+  @Override
+  public DataSource getDataSource() {
+    return defaultDatasourceFactory.createDataSource();
   }
 
   private static boolean isHTTP(Uri uri) {
@@ -239,6 +272,13 @@ final class VideoPlayer {
 
   void seekTo(int location) {
     exoPlayer.seekTo(location);
+  }
+
+
+  void preload(String url, long byteSize) {
+    ArrayList<Uri> list = new ArrayList<Uri>();
+    list.add(Uri.parse(url));
+    preloadMedia(list, byteSize);
   }
 
   long getPosition() {

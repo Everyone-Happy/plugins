@@ -55,6 +55,8 @@ class CreateMessage {
   }
 }
 
+
+
 class LoopingMessage {
   int textureId;
   bool isLooping;
@@ -143,6 +145,34 @@ class PositionMessage {
     final PositionMessage result = PositionMessage();
     result.textureId = pigeonMap['textureId'];
     result.position = pigeonMap['position'];
+    return result;
+  }
+}
+
+
+class PreloadMessage {
+  int textureId;
+  String uri;
+  int byteSize;
+
+  // ignore: unused_element
+  Map<dynamic, dynamic> _toMap() {
+    final Map<dynamic, dynamic> pigeonMap = <dynamic, dynamic>{};
+    pigeonMap['textureId'] = textureId;
+    pigeonMap['uri'] = uri;
+    pigeonMap['byteSize'] = byteSize;
+    return pigeonMap;
+  }
+
+  // ignore: unused_element
+  static PreloadMessage _fromMap(Map<dynamic, dynamic> pigeonMap) {
+    if (pigeonMap == null) {
+      return null;
+    }
+    final PreloadMessage result = PreloadMessage();
+    result.textureId = pigeonMap['textureId'];
+    result.uri = pigeonMap['uri'];
+    result.byteSize = pigeonMap['byteSize'];
     return result;
   }
 }
@@ -348,6 +378,29 @@ class VideoPlayerApi {
     final Map<dynamic, dynamic> requestMap = arg._toMap();
     const BasicMessageChannel<dynamic> channel = BasicMessageChannel<dynamic>(
         'dev.flutter.pigeon.VideoPlayerApi.seekTo', StandardMessageCodec());
+
+    final Map<dynamic, dynamic> replyMap = await channel.send(requestMap);
+    if (replyMap == null) {
+      throw PlatformException(
+          code: 'channel-error',
+          message: 'Unable to establish connection on channel.',
+          details: null);
+    } else if (replyMap['error'] != null) {
+      final Map<dynamic, dynamic> error = replyMap['error'];
+      throw PlatformException(
+          code: error['code'],
+          message: error['message'],
+          details: error['details']);
+    } else {
+      // noop
+    }
+  }
+
+
+  Future<void> preload(PreloadMessage arg) async {
+    final Map<dynamic, dynamic> requestMap = arg._toMap();
+    const BasicMessageChannel<dynamic> channel = BasicMessageChannel<dynamic>(
+        'dev.flutter.pigeon.VideoPlayerApi.preload', StandardMessageCodec());
 
     final Map<dynamic, dynamic> replyMap = await channel.send(requestMap);
     if (replyMap == null) {
