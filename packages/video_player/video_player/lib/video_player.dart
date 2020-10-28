@@ -467,6 +467,14 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     _updatePosition(position);
   }
 
+  Future<void> preload(String uri, int byteSize) async {
+    try {
+      await _videoPlayerPlatform.preload(_textureId, uri, byteSize);
+    } catch (e) {
+      print(e);
+    }
+  }
+
   /// Sets the audio volume of [this].
   ///
   /// [volume] indicates a value between 0.0 (silent) and 1.0 (full volume) on a

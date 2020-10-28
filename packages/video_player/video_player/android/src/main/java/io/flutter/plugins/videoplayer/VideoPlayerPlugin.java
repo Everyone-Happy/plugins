@@ -195,6 +195,12 @@ public class VideoPlayerPlugin implements FlutterPlugin, VideoPlayerApi {
     player.seekTo(arg.getPosition().intValue());
   }
 
+  @Override
+  public void preload(Messages.PreloadMessage arg) {
+    VideoPlayer player = videoPlayers.get(arg.getTextureId());
+    player.preload(arg.getUrl(), arg.getByteSize());
+  }
+
   public void pause(TextureMessage arg) {
     VideoPlayer player = videoPlayers.get(arg.getTextureId());
     player.pause();
