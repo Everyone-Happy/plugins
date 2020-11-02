@@ -467,9 +467,9 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     _updatePosition(position);
   }
 
-  Future<void> preload(String uri, int byteSize) async {
+  Future<void> preload(String uris, int byteSize) async {
     try {
-      await _videoPlayerPlatform.preload(_textureId, uri, byteSize);
+      await _videoPlayerPlatform.preload(_textureId, uris, byteSize);
     } catch (e) {
       print(e);
     }

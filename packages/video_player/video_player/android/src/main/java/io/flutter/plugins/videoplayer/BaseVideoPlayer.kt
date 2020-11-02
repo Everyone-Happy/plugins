@@ -1,9 +1,10 @@
 package io.flutter.plugins.videoplayer
 
 import android.net.Uri
-import android.os.Build
-import androidx.annotation.RequiresApi
-import com.google.android.exoplayer2.upstream.*
+import com.google.android.exoplayer2.upstream.DataSource
+import com.google.android.exoplayer2.upstream.DataSourceException
+import com.google.android.exoplayer2.upstream.DataSpec
+import com.google.android.exoplayer2.upstream.HttpDataSource
 import com.google.android.exoplayer2.upstream.cache.Cache
 import com.google.android.exoplayer2.upstream.cache.CacheUtil
 import io.flutter.plugins.videoplayer.BuildConfig.DEBUG
@@ -66,6 +67,17 @@ abstract class BaseVideoPlayer {
             }
             waitQueue.add(task)
         }
+    }
+
+
+    open fun preload(urls: String, byteSize: Long) {
+        val list = ArrayList<Uri>()
+        urls.split(",").forEach {
+            if (it.isNotEmpty()) {
+                list.add(Uri.parse(it))
+            }
+        }
+        preloadMedia(list, byteSize)
     }
 
     abstract fun getCache(): Cache?
