@@ -275,11 +275,6 @@ final class VideoPlayer extends BaseVideoPlayer {
   }
 
 
-  void preload(String url, long byteSize) {
-    ArrayList<Uri> list = new ArrayList<Uri>();
-    list.add(Uri.parse(url));
-    preloadMedia(list, byteSize);
-  }
 
   long getPosition() {
     return exoPlayer.getCurrentPosition();
